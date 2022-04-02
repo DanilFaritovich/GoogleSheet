@@ -52,11 +52,12 @@ def sqlite_lower(value_):
 
 class create_lists():
     def __init__(self):
-        self.header_title = list_in.row_values(1)
+        self.header_title = list_in.row_values(1)[:7]
         self.header_last_list = ['before_buy_sum', 'before_user_count', 'before_buy', 'product', 'after_buy',
                             'after_user_count', 'after_buy_sum']
         self.header_top = ['order_number', 'product_dictonary', 'count', 'Sum']
     def create_tables(self):
+        print(tuple(self.header_title))
         cur.execute("""CREATE TABLE IF NOT EXISTS users(
                %s DATE,
                %s DATE,
@@ -92,7 +93,7 @@ class create_lists():
                            """ % tuple(self.header_top[1:]))
     def insert_values(self):
         # Проверяем валидность данных
-        user_list = [i for i in list_in.get_all_values()[1:]]
+        user_list = [i[:7] for i in list_in.get_all_values()[1:]]
         for i in user_list:
             i[0] = create_date(i[0])
             i[1] = create_date(i[1])
@@ -240,8 +241,9 @@ class create_lists():
         sort_date = []
 
         for i in range(1, conn.execute("SELECT order_number FROM users_confirm WHERE order_number != '' ORDER BY order_number DESC LIMIT 1;").fetchone()[0] + 1):
-            count_dict, sum_dict, user_sum = {}, {}, 0
+            count_dict, sum_dict = {}, {}
             for key in in_keys:
+                user_sum = 0
                 request = conn.execute("SELECT product, order_number, sum_order FROM users_confirm WHERE LOWER(product) like '%/%' and order_number = %s;".replace('/', key[0].lower()).replace('%s', str(i))).fetchall()
                 count_dict[key[0]] = len(request)
                 for n in request:
